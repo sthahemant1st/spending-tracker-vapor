@@ -29,3 +29,12 @@ enum Entrypoint {
         try await app.asyncShutdown()
     }
 }
+
+extension Environment {
+    static var staging: Environment {
+        .custom(name: "staging")
+    }
+}
+
+// brew services stop postgresql
+// brew services start postgresql
