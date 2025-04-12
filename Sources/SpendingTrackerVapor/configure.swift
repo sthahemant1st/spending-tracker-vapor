@@ -1,4 +1,5 @@
 import Vapor
+import Leaf
 
 // configures your application
 public func configure(_ app: Application) async throws {
@@ -7,4 +8,11 @@ public func configure(_ app: Application) async throws {
 
     // register routes
     try routes(app)
+
+    // Configure the Leaf template engine
+    app.views.use(.leaf)
+
+    app.leaf.tags["now"] = NowTag()
+    app.leaf.tags["hello"] = HelloTag()
+    app.leaf.tags["helloData"] = HelloDataTag()
 }

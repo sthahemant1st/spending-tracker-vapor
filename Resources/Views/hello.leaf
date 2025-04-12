@@ -1,0 +1,4 @@
+Hello, #(name)!
+The time is #now()
+#hello("John")
+#helloData()
