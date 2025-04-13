@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:spending-tracker-vapor}",
+            "name": "Debug SpendingTrackerVapor",
+            "program": "${workspaceFolder:spending-tracker-vapor}/.build/debug/SpendingTrackerVapor",
+            "preLaunchTask": "swift: Build Debug SpendingTrackerVapor"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:spending-tracker-vapor}",
+            "name": "Release SpendingTrackerVapor",
+            "program": "${workspaceFolder:spending-tracker-vapor}/.build/release/SpendingTrackerVapor",
+            "preLaunchTask": "swift: Build Release SpendingTrackerVapor"
+        }
+    ]
+}
