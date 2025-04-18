@@ -8,7 +8,7 @@ struct Account: Content {
     var favoriteColor: Color?
 }
 
-enum Color: String, Codable {
+enum Color: String, Codable, CaseIterable {
     case red, blue, green
 }
 

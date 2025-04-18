@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "type": "lldb",
+            "type": "swift",
             "request": "launch",
             "args": [],
             "cwd": "${workspaceFolder:spending-tracker-vapor}",
@@ -10,7 +10,7 @@
             "preLaunchTask": "swift: Build Debug SpendingTrackerVapor"
         },
         {
-            "type": "lldb",
+            "type": "swift",
             "request": "launch",
             "args": [],
             "cwd": "${workspaceFolder:spending-tracker-vapor}",

@@ -5,7 +5,8 @@ import Vapor
 // configures your application
 public func configure(_ app: Application) async throws {
     // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+
 
     // Increases the streaming body collection limit to 500kb
     app.routes.defaultMaxBodySize = "500kb"
