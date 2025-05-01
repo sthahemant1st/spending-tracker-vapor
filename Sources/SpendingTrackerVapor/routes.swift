@@ -7,6 +7,7 @@ func routes(_ app: Application) throws {
     app.get("swagger") { req -> Response in
         return req.redirect(to: "/swagger/index.html")
     }
+    .excludeFromOpenAPI()
 
     // generate OpenAPI documentation
     app.get("openapi.json") { req in
@@ -29,4 +30,7 @@ func routes(_ app: Application) throws {
         responseDescription: "Constant string, response string dosen't matter",
         statusCode: .ok
     )
+    
+    try app.register(collection: UserController())
+    
 }

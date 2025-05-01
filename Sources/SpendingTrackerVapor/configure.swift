@@ -15,6 +15,10 @@ public func configure(_ app: Application) async throws {
     encoder.dateEncodingStrategy = .secondsSince1970
     // override the global encoder used for the `.json` media type
     ContentConfiguration.global.use(encoder: encoder, for: .json)
+    
+    // iniatializing service.
+    let emailService = TemporaryEmailService()
+    app.emailService = emailService
 
     try routes(app)
 
@@ -22,9 +26,9 @@ public func configure(_ app: Application) async throws {
         .postgres(
             configuration: .init(
                 hostname: "localhost",
-                username: "vapor",
-                password: "password",
-                database: "spending_tracker_db",
+                username: "spending_tracker",
+                password: "spending_tracker",
+                database: "spending_tracker",
                 tls: .disable
             )
         ),
@@ -36,4 +40,7 @@ public func configure(_ app: Application) async throws {
     // psql -U postgres -d spending_tracker_db -- // connect to db
     // CREATE EXTENSION IF NOT EXISTS pg_trgm; -- // enable pg_trgm extension
     // \q -- // quit psql
+    app.migrations.add(CreateUserMigration())
+    app.migrations.add(CreateEmailVerificationTokenMigration())
 }
+

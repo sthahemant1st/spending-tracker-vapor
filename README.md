@@ -1,27 +1,16 @@
 # SpendingTrackerVapor
 
-💧 A project built with the Vapor web framework.
+🔐 Authentication & User Management
 
-## Getting Started
+Method    Endpoint    Description
+POST    /users/register    Register a new user (sends email verification link)
+GET    /users/verify    Verify email with token (e.g., /users/verify?token=xyz)
+POST    /users/login    Log in and receive a token (only if email is verified)
 
-To build the project using the Swift Package Manager, run the following command in the terminal from the root of the project:
-```bash
-swift build
-```
+💸 Spending Entries (Authenticated)
 
-To run the project and start the server, use the following command:
-```bash
-swift run
-```
-
-To execute tests, use the following command:
-```bash
-swift test
-```
-
-### See more
-
-- [Vapor Website](https://vapor.codes)
-- [Vapor Documentation](https://docs.vapor.codes)
-- [Vapor GitHub](https://github.com/vapor)
-- [Vapor Community](https://github.com/vapor-community)
+Method    Endpoint    Description
+GET    /spendings    Get all spending entries for the user
+POST    /spendings    Add a new spending entry
+PUT    /spendings/:id    Update a specific spending
+DELETE    /spendings/:id    Delete a specific spending
