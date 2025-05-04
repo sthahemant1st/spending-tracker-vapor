@@ -15,6 +15,9 @@ public func configure(_ app: Application) async throws {
     encoder.dateEncodingStrategy = .secondsSince1970
     // override the global encoder used for the `.json` media type
     ContentConfiguration.global.use(encoder: encoder, for: .json)
+
+    // 2. Add your ProblemDetailsErrorMiddleware at the end
+    app.middleware.use(ProblemDetailsErrorMiddleware())
     
     // iniatializing service.
     let emailService = TemporaryEmailService()
