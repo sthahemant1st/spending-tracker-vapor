@@ -20,6 +20,7 @@ struct CreateUserMigration: Migration {
             .field("created_at", .datetime)
             .field( "updated_at", .datetime)
             .field("is_email_verified", .bool, .required)
+            .field("token_version", .int, .required)
             .unique(on: "email")
             .unique(on: "username")
             .create()

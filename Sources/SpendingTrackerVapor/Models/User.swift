@@ -41,6 +41,9 @@ final class User: Model, @unchecked Sendable {
     @Timestamp(key: "updated_at", on: .update)
     var updateAt: Date?
     
+    @Field(key: "token_version")
+    var tokenVersion: Int
+    
     @Children(for: \.$user)
     var emailTokens: [EmailVerificationToken]
     
@@ -61,6 +64,7 @@ final class User: Model, @unchecked Sendable {
         self.username = username
         self.passwrodHash = passwrodHash
         self.isEmailVerified = false
+        self.tokenVersion = 0
     }
 }
 
@@ -75,7 +79,9 @@ struct UserAuthenticator: AsyncBearerAuthenticator {
         let userID = UUID(uuidString: payload.subject.value)
         
         let user = try await User.find(userID, on: request.db)
-        if let user {
+        
+        
+        if let user, user.tokenVersion == payload.tokenVersion {
             request.auth.login(user)
         }
     }

@@ -46,6 +46,29 @@ struct UserController: RouteCollection {
                 response: .type(ProfileResponse.self),
                 auth: .bearer(description: "JWT Bearer Token")
             )
+        
+        protectedUsers.get("logout", use: logout)
+            .openAPI(
+                response: .type(NoContent.self),
+                statusCode: .noContent,
+                auth: .bearer()
+            )
+    }
+    
+    func logout(req: Request) async throws -> HTTPStatus {
+        let user = try req.auth.require(User.self)
+        let userID = try user.requireID()
+        
+        try await req.db.transaction { db in
+            try await RefreshToken.query(on: db)
+                .filter(\.$user.$id, .equal, userID)
+                .delete()
+            
+            user.tokenVersion += 1
+            try await user.save(on: db)
+        }
+
+        return .noContent
     }
     
     func profile(req: Request) async throws -> ProfileResponse {
@@ -125,7 +148,8 @@ struct UserController: RouteCollection {
         let exp: ExpirationClaim = .init(value: Date.now.addingTimeInterval(accessTokenTTL))
         let payload = AccessTokenPayload(
             subject: .init(value: try user.requireID().uuidString),
-            expiration: exp
+            expiration: exp,
+            tokenVersion: user.tokenVersion
         )
         return try await req.jwt.sign(payload)
     }
@@ -211,6 +235,7 @@ struct UserController: RouteCollection {
 struct AccessTokenPayload: JWTPayload {
     var subject: SubjectClaim
     var expiration: ExpirationClaim
+    var tokenVersion: Int
     
     func verify(using algorithm: some JWTKit.JWTAlgorithm) async throws {
         try expiration.verifyNotExpired()
