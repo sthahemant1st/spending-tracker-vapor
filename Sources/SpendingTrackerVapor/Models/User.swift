@@ -63,3 +63,20 @@ final class User: Model, @unchecked Sendable {
         self.isEmailVerified = false
     }
 }
+
+extension User: Authenticatable {}
+
+struct UserAuthenticator: AsyncBearerAuthenticator {
+    func authenticate(
+        bearer: Vapor.BearerAuthorization,
+        for request: Vapor.Request
+    ) async throws {
+        let payload = try await request.jwt.verify(bearer.token, as: AccessTokenPayload.self)
+        let userID = UUID(uuidString: payload.subject.value)
+        
+        let user = try await User.find(userID, on: request.db)
+        if let user {
+            request.auth.login(user)
+        }
+    }
+}

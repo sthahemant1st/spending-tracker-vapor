@@ -39,6 +39,25 @@ struct UserController: RouteCollection {
                 body: .type(RefreshTokenRequest.self),
                 response: .type(LoginResponse.self)
             )
+        
+        let protectedUsers = users.grouped(UserAuthenticator(), User.guardMiddleware())
+        protectedUsers.get("me", use: profile)
+            .openAPI(
+                response: .type(ProfileResponse.self),
+                auth: .bearer(description: "JWT Bearer Token")
+            )
+    }
+    
+    func profile(req: Request) async throws -> ProfileResponse {
+        let user = try req.auth.require(User.self)
+        
+        return .init(
+            firstName: user.firstName,
+            middleName: user.middleName,
+            lastName: user.lastName,
+            email: user.email,
+            username: user.username
+        )
     }
     
     func refresh(req: Request) async throws -> LoginResponse {
