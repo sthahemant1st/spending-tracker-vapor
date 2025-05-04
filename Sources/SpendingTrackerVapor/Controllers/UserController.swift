@@ -8,6 +8,7 @@
 import Vapor
 import Fluent
 import VaporToOpenAPI
+import JWT
 
 struct UserController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
@@ -26,6 +27,98 @@ struct UserController: RouteCollection {
                     String.self
                 )
             )
+        
+        users.post("login", use: login)
+            .openAPI(
+                body: .type(LoginRequest.self),
+                response: .type(LoginResponse.self)
+            )
+        
+        users.post("refresh", use: refresh)
+            .openAPI(
+                body: .type(RefreshTokenRequest.self),
+                response: .type(LoginResponse.self)
+            )
+    }
+    
+    func refresh(req: Request) async throws -> LoginResponse {
+        let refreshTokenRequest = try req.content.decode(RefreshTokenRequest.self)
+        
+        let refreshToken = try await RefreshToken.query(on: req.db)
+            .filter(\.$token, .equal, refreshTokenRequest.refreshToken)
+            .filter(\.$expiresAt > Date.now)
+            .with(\.$user)
+            .first()
+        guard let refreshToken else {
+            throw Abort(.unauthorized, reason: "Invalid refresh token")
+        }
+        let jwt = try await createJWTToken(for: refreshToken.user, req: req)
+        let newRefreshToken = try createRefreshToken(for: refreshToken.user)
+        
+        try await req.db.transaction { db in
+            try await newRefreshToken.save(on: db)
+            try await refreshToken.delete(on: db)
+        }
+        
+        return .init(
+            accessToken: jwt,
+            refreshToken: newRefreshToken.token,
+            expiresAt: newRefreshToken.expiresAt
+        )
+    }
+    
+    func login(req: Request) async throws -> LoginResponse {
+        let loginRequest = try req.content.decode(LoginRequest.self)
+        
+        let username = loginRequest.username.lowercased()
+        
+        let user = try await User.query(on: req.db)
+            .filter(\.$username == username)
+            .first()
+        
+        guard let user else {
+            throw Abort(.notFound, reason: "User not found")
+        }
+        
+        guard user.isEmailVerified else {
+            throw Abort(.unprocessableEntity, reason: "Email not verified")
+        }
+        
+        
+        guard try Bcrypt.verify(loginRequest.password, created: user.passwrodHash) else {
+            throw Abort(.unauthorized, reason: "Invalid credentials")
+        }
+
+        let jwt = try await createJWTToken(for: user, req: req)
+        
+        let refreshToken = try createRefreshToken(for: user)
+        try await refreshToken.save(on: req.db)
+
+        return LoginResponse(
+            accessToken: jwt,
+            refreshToken: refreshToken.token,
+            expiresAt: refreshToken.expiresAt
+        )
+    }
+    
+    func createJWTToken(for user: User, req: Request) async throws -> String {
+        let accessTokenTTL: TimeInterval = 60 * 15
+        let exp: ExpirationClaim = .init(value: Date.now.addingTimeInterval(accessTokenTTL))
+        let payload = AccessTokenPayload(
+            subject: .init(value: try user.requireID().uuidString),
+            expiration: exp
+        )
+        return try await req.jwt.sign(payload)
+    }
+    
+    func createRefreshToken(for user: User) throws -> RefreshToken {
+        let refreshTokenString = [UInt8].random(count: 32).base64
+        let refreshTokenTTL: TimeInterval = 60 * 60
+        return RefreshToken(
+            token: refreshTokenString,
+            expiresAt: Date.now.addingTimeInterval(refreshTokenTTL),
+            userID: try user.requireID()
+        )
     }
     
     func verify(req: Request) async throws -> String {
@@ -93,5 +186,14 @@ struct UserController: RouteCollection {
         }
         
         return .created
+    }
+}
+
+struct AccessTokenPayload: JWTPayload {
+    var subject: SubjectClaim
+    var expiration: ExpirationClaim
+    
+    func verify(using algorithm: some JWTKit.JWTAlgorithm) async throws {
+        try expiration.verifyNotExpired()
     }
 }

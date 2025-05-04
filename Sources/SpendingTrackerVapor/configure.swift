@@ -1,6 +1,7 @@
 import Fluent
 import FluentPostgresDriver
 import Vapor
+import JWT
 
 // configures your application
 public func configure(_ app: Application) async throws {
@@ -16,8 +17,10 @@ public func configure(_ app: Application) async throws {
     // override the global encoder used for the `.json` media type
     ContentConfiguration.global.use(encoder: encoder, for: .json)
 
-    // 2. Add your ProblemDetailsErrorMiddleware at the end
     app.middleware.use(ProblemDetailsErrorMiddleware())
+    
+    // Add HMAC with SHA-256 signer.
+    await app.jwt.keys.add(hmac: "secret-get-it-from-env", digestAlgorithm: .sha256)
     
     // iniatializing service.
     let emailService = TemporaryEmailService()
@@ -45,5 +48,6 @@ public func configure(_ app: Application) async throws {
     // \q -- // quit psql
     app.migrations.add(CreateUserMigration())
     app.migrations.add(CreateEmailVerificationTokenMigration())
+    app.migrations.add(CreateRefreshTokenMigration())
 }
 
