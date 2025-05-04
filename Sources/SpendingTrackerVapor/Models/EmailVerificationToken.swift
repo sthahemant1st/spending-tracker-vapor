@@ -17,6 +17,8 @@ final class EmailVerificationToken: Model, @unchecked Sendable {
     @Parent(key: "user_id") var user: User
     @Timestamp(key: "created_at", on: .create)
     var createdAt: Date?
+    @Timestamp(key: "deleted_at", on: .delete)
+    var deletedAt: Date?
     
     init() {}
     
@@ -31,4 +33,8 @@ final class EmailVerificationToken: Model, @unchecked Sendable {
         self.expiresAt = Date().addingTimeInterval(3600)
         self.$user.id = userID
     }
+}
+
+extension EmailVerificationToken {
+    var isExpired: Bool { expiresAt < Date.now }
 }

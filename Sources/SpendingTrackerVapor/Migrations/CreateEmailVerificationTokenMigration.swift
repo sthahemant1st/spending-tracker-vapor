@@ -15,6 +15,7 @@ struct CreateEmailVerificationTokenMigration: Migration {
             .field("expires_at", .datetime, .required)
             .field("user_id", .uuid, .required, .references("users", "id", onDelete: .cascade))
             .field("created_at", .datetime)
+            .field("deleted_at", .datetime)
             .unique(on: "token")
             .create()
     }

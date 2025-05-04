@@ -1,5 +1,5 @@
 //
-//  CreateUserDTO.swift
+//  CreateUserRequest.swift
 //  SpendingTrackerVapor
 //
 //  Created by Hemant Shrestha on 30.04.25.
@@ -8,7 +8,7 @@
 import Vapor
 import Fluent
 
-struct CreateUserDTO: Content {
+struct CreateUserRequest: Content {
     var firstName: String
     var middleName: String?
     var lastName: String
@@ -35,7 +35,7 @@ struct CreateUserDTO: Content {
 //    }
 }
 
-extension CreateUserDTO: Validatable {
+extension CreateUserRequest: Validatable {
     static func validations(_ validations: inout Vapor.Validations) {
         validations.add("firstName", as: String.self, is: .count(2...100))
         validations.add("lastName", as: String.self, is: .count(2...100))
